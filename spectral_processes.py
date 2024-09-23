@@ -4,6 +4,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import glob,os
 
+rate = 78139901249.54921
+rate *= 1e-9
+
 def load( n = 6):
     if n == 6:
         folder_path = 'spectroscopy_data/peaks_6'
@@ -86,6 +89,7 @@ def spline_model(xknots_ind, x,y, plot = False):
         plt.plot(x, out.best_fit, label='best fit bkg', color= 'red')
         plt.plot(x[xknots_ind], knot_yvals, 'o', color='black', label='spline knots values')
         plt.legend()
+        plt.grid()
         plt.title('Spline Model Fit')
         plt.show()
     return comps['bkg_']
@@ -97,11 +101,15 @@ def subtract_bkg(bkg, y_old, x, plot_orientacne = False, left =None, right=None)
         plt.scatter(x, y_old*100+300, s=0.1, label = 'y_old', color= 'red')
         plt.legend()
         plt.xlim(left, right)
+        plt.minorticks_on()
+        plt.grid(which='minor', alpha =0.1)
+        plt.grid(which='major')
+
         plt.show()
     return y
 
 def model_peaks(peak_num, centers, x, y , plot=False, amplitudes = None):
-    if not(amplitudes):
+    if np.array(amplitudes).any() == None:
         amplitudes = [80]*6
     lorentzians = np.zeros(peak_num, dtype=object)
     for i in range(peak_num):
@@ -110,12 +118,12 @@ def model_peaks(peak_num, centers, x, y , plot=False, amplitudes = None):
             params = lorentzians[i].make_params(
                 center = dict(value = centers[i], min = centers[i] -0.2, max = centers[i]+0.2),
                 sigma = 0.2,
-                amplitude = amplitudes[i]
+                amplitude = dict(value = amplitudes[i], min = 0)
             )
         else:
             params.update(lorentzians[i].make_params(
                 center = dict(value = centers[i], min = centers[i] -0.2, max = centers[i]+0.2),
-                sigma = 0.2,
+                sigma = dict(value = 0.2, max = 1),
                 amplitude = 80
             ))
 
@@ -128,10 +136,10 @@ def model_peaks(peak_num, centers, x, y , plot=False, amplitudes = None):
     print(out.fit_report(min_correl=0.3))
     comps = out.eval_components()
     if plot:
-        plt.plot(x, comps['l0_'], label='l1')
-        plt.plot(x, comps['l1_'], label='l2')
-        plt.plot(x, comps['l2_'], label='l3a')
-        plt.plot(x, comps['l3_'], label='l3b')
+        plt.plot(x, comps['l0_'], label='l0')
+        plt.plot(x, comps['l1_'], label='l1')
+        plt.plot(x, comps['l2_'], label='l2')
+        plt.plot(x, comps['l3_'], label='l3')
         plt.plot(x, comps['l4_'], label='l4')
         plt.plot(x, comps['l5_'], label='l5')
 
@@ -143,34 +151,35 @@ def model_peaks(peak_num, centers, x, y , plot=False, amplitudes = None):
         plt.show()
     return out
 
-def eval_peaks(out):
+def eval_peaks(out, group = 3):
     result_peaks = np.zeros(6)
+    result_stdrr = np.zeros(6)
     i = 0
     for name, param in out.params.items():
         if 'center' in name:
             print(f'{name:7s} {param.value:11.5f} {param.stderr:11.5f}')
             result_peaks[i] = param.value
+            result_stdrr[i] = param.stderr
             i+=1 
     print(result_peaks)
 
     transitionsf3 = [0, 151.21, 352.45000000000005] + [ 75.605 ,251.83 , 176.225]
     transitionsf4 = [0, 201.24, 452.24] + [100.62 ,326.74 ,226.12]
     result_peaks -= result_peaks[0]
-
-    plt.bar(result_peaks*(max(transitionsf3)/result_peaks[-1]), height=np.ones(6), width=3, color = 'red')
-    plt.bar(transitionsf3, height=np.ones(6), width=1, color = 'black', linestyle ='-')
-    plt.title('F3 transitions')
-    plt.show()
-
-    plt.title('F4 group')
-    plt.bar(result_peaks*(max(transitionsf4)/result_peaks[-1]), height=np.ones(6), width=3, color ='green')
-    plt.bar(transitionsf4, height=np.ones(6), width=1, color = 'blue')
-    plt.show()
+    if group == 3:
+        plt.bar(result_peaks*rate, height=np.ones(6), width=3, color = 'red')
+        plt.bar(transitionsf3, height=np.ones(6), width=1, color = 'black', linestyle ='-')
+        plt.title('F3 transitions')
+        plt.show()
+    elif group == 4:
+        plt.title('F4 group')
+        plt.bar(result_peaks*rate, height=np.ones(6), width=3, color ='green')
+        plt.bar(transitionsf4, height=np.ones(6), width=1, color = 'blue')
+        plt.show()
+    return np.array([result_peaks, result_stdrr]).T
 
 def cut_data(x ,y , left, right):
     left = np.abs(x-left).argmin()
     right = np.abs(x-right).argmin()
     return x[left:right], y[left:right]
 
-def foo():
-    return 5
