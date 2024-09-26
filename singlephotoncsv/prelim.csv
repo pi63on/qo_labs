@@ -1,0 +1,13 @@
+Dark counts,,uncertainty (due to fluctuations on screen),,,preliminary counts,,,,,,,,
+single0,4000,100,counts/sec,,138261,,,,,,,,
+single1,7400,200,,,126224,,,,,,,,
+coincidence,0,,,,7948,,,,,,,,
+accidental coincidence,,0 blocked:15,1 blocked:23,,,,,,,,,,
+,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+https://colab.research.google.com/drive/1w5n1UHiktB3wDmr9fk4EW0AJ8qX3r6h3?usp=sharing,,,,,,,,,,,,,
+,,,,,,,,,,,,,
+After Bell Optimization,,,,,,,Preliminary Counts,unc sqrt,unc relative,Dark Counts,unc observed fluctuations,Accidental C.,unc
+VV,s1-210 ,s2-118,2100,,,Single 0,138261,371.8346407,0.002689367505,4000,100,698.0742586,0.00001515512121
+HH,s1-120,s2-28,2200,,,Single 1,126224,355.2801711,0.002814680022,7400,200,,2.717573699
+,,,,,,Coincidence 01,7948,89.15155635,0.0112168541,0,0,,
